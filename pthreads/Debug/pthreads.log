@@ -1,0 +1,3 @@
+﻿  Principal.c
+C:\Users\Gian Lucca\source\repos\pthreads\pthreads\Principal.c(158,1): warning C4715: 'thread_busca': nem todos os caminhos de controle retornam um valor
+  pthreads.vcxproj -> C:\Users\Gian Lucca\source\repos\pthreads\Debug\pthreads.exe
