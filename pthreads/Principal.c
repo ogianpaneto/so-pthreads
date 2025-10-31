@@ -9,6 +9,17 @@
 #include <math.h>
 #include <time.h>
 
+#define RESET   "\033[0m"
+#define BOLD    "\033[1m"
+//#define GREEN   "\033[32m"
+#define CYAN    "\033[36m"
+#define YELLOW  "\033[33m"
+#define MAGENTA "\033[35m"
+#define BLUE    "\033[34m"
+#define GREEN "\033[38;5;46m"
+#define LIGHT_GREEN "\033[38;5;118m"
+#define GRAY "\033[38;5;240m"
+
 // tamanho maximo dos numeros da matriz
 #define MAX_SIZE_MATRIZ 31999
 
@@ -20,11 +31,11 @@
 #define SEED 8008135
 
 // dimensoes da matriz
-#define MATRIZ_ALTURA 13000
-#define MATRIZ_LARGURA 13000
+#define MATRIZ_ALTURA 5000
+#define MATRIZ_LARGURA 5000
 
 // numero de threads
-#define NUM_THREADS 4
+#define NUM_THREADS 8
 
 // otimizacao na funcao de verificação de numeros primos
 // 1 para ativar, 0 para desativar
@@ -220,35 +231,62 @@ void busca_paralela() {
 int main() {
 	clock_t timer_inicio, timer_fim;
 	double tempo_serial, tempo_paralelo, speedup;
+	int primos_cont_serial;
 
 	printf("Alocando e preenchendo matriz... ");
 	matriz = alocar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA);
 	preencher_matriz(matriz, MATRIZ_ALTURA, MATRIZ_LARGURA);
-	printf("ok!\n");
+	printf("%sok!%s\n", GREEN, RESET);
 
-	printf("\nIniciando busca serial... ");
+	printf("Iniciando busca serial... ");
 	timer_inicio = clock();
 	busca_serial();
-	printf("ok!\n");
+	printf("%sok!%s\n", GREEN, RESET);
 	timer_fim = clock();
 	tempo_serial = ((double)(timer_fim - timer_inicio)) / CLOCKS_PER_SEC;
-	printf("Total de numeros primos encontrados: %d\n", primos_cont);
+	primos_cont_serial = primos_cont;
+	//printf("Total de numeros primos encontrados: %d\n", primos_cont);
 
-	printf("\nIniciando busca paralela... ");
+	printf("Iniciando busca paralela... ");
 	timer_inicio = clock();
 	busca_paralela();
-	printf("ok!\n");
+	printf("%sok!%s\n", GREEN, RESET);
 	timer_fim = clock();
 	tempo_paralelo = ((double)(timer_fim - timer_inicio)) / CLOCKS_PER_SEC;
-	printf("Total de numeros primos encontrados: %d\n", primos_cont);
+	//printf("Total de numeros primos encontrados: %d\n", primos_cont);
+
+	printf("%s\nExecucao concluida com sucesso!%s\n\n", GREEN, RESET);
 
 	speedup = tempo_serial / tempo_paralelo;
+	printf("%s========================================%s\n", BOLD, RESET);
+	printf("%s   RESULTADOS DA EXECUCAO DO PROGRAMA%s\n", GREEN, RESET);
+	printf("%s========================================%s\n\n", BOLD, RESET);
 
-	printf("\nTempo serial: %lf segundos\n", tempo_serial);
+	printf("%s-----------------------------------------%s\n", GRAY, RESET);
+	printf("%s          Quantidade de primos%s\n", GREEN, RESET);
+	printf("%s-----------------------------------------%s\n", GRAY, RESET);
+	printf("Serial	                   %d\n", primos_cont_serial);
+	printf("Paralelo                   %d\n", primos_cont);
+
+	printf("%s-----------------------------------------%s\n", GRAY, RESET);
+	printf("%s                  Tempo%s\n", GREEN, RESET);
+	printf("%s-----------------------------------------%s\n", GRAY, RESET);
+	printf("Serial	                   %lfs\n", tempo_serial);
+	printf("Paralelo                   %lfs\n", tempo_paralelo);
+	printf("Speedup	                   %s%lfx %s\n", GREEN, speedup, RESET);
+	printf("%s-----------------------------------------%s\n", GRAY, RESET);
+
+	/*printf("Tempo serial: %lf segundos\n", tempo_serial);
 	printf("Tempo paralelo: %lf segundos\n", tempo_paralelo);
-	printf("Speedup: %lf\n", speedup);
+	printf("Speedup: %lf\n", speedup);*/
 
-	printf("\nQuantidade de macroblocos: %d\nQuantidade de threads: %d\n", qnt_macrobloco, NUM_THREADS);
+	printf("%s              Configuracoes%s\n", GREEN, RESET);
+	printf("%s-----------------------------------------%s\n", GRAY, RESET);
+	printf("Threads utilizadas         %d\n", NUM_THREADS);
+	printf("Macroblocos processados    %d\n", qnt_macrobloco);
+	printf("%s-----------------------------------------%s\n\n", GRAY, RESET);
+
+	//printf("\nQuantidade de macroblocos: %d\nQuantidade de threads: %d\n", qnt_macrobloco, NUM_THREADS);
 
 	liberar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA, matriz);
 }
