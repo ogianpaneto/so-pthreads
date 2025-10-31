@@ -47,7 +47,7 @@ int macrobloco_proximo = 1;
 
 
 // funcao para verificar se um numero e primo
-int eh_primo(int n, int variacao) {
+int eh_primo(int n) {
 	// se OTIMIZADO = 1, usa a versao otimizada
 	if (OTIMIZADO) {
 		if (n == 2 || n == 3) return 1;
