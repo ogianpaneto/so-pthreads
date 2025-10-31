@@ -11,11 +11,6 @@
 
 #define RESET   "\033[0m"
 #define BOLD    "\033[1m"
-//#define GREEN   "\033[32m"
-#define CYAN    "\033[36m"
-#define YELLOW  "\033[33m"
-#define MAGENTA "\033[35m"
-#define BLUE    "\033[34m"
 #define GREEN "\033[38;5;46m"
 #define LIGHT_GREEN "\033[38;5;118m"
 #define GRAY "\033[38;5;240m"
@@ -154,14 +149,15 @@ void* thread_busca(void* diov) {
 	while (1) {
 		
 		// verifica se ja processou todos os macroblocos
+		pthread_mutex_lock(&mutex_macrobloco);
 		if (macrobloco_proximo > qnt_macrobloco) {
 			pthread_mutex_unlock(&mutex_macrobloco); 
 			break;
 		}
 
 		// pega o proximo macrobloco a ser processado (zona critica)
-		pthread_mutex_lock(&mutex_macrobloco);
-		macrobloco_atual = macrobloco_proximo++;
+		macrobloco_atual = macrobloco_proximo;
+		macrobloco_proximo = macrobloco_proximo + 1;
 		pthread_mutex_unlock(&mutex_macrobloco);
 
 		// calcula os limites do macrobloco atual
@@ -177,8 +173,7 @@ void* thread_busca(void* diov) {
 			coluna_fim < 0 || coluna_fim >= MATRIZ_LARGURA) 
 		{
 			pthread_mutex_lock(&mutex_erro_printf);
-			printf("Error: violacao de acesso ao ler local (provavel que o a divisao da matriz por macroblocos nao seja exata)");
-			pthread_mutex_unlock(&mutex_erro_printf);
+			printf("Error: violacao de acesso ao ler local (provavel que o a divisao da matriz por macroblocos nao seja exata)\n\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -245,7 +240,6 @@ int main() {
 	timer_fim = clock();
 	tempo_serial = ((double)(timer_fim - timer_inicio)) / CLOCKS_PER_SEC;
 	primos_cont_serial = primos_cont;
-	//printf("Total de numeros primos encontrados: %d\n", primos_cont);
 
 	printf("Iniciando busca paralela... ");
 	timer_inicio = clock();
@@ -253,7 +247,6 @@ int main() {
 	printf("%sok!%s\n", GREEN, RESET);
 	timer_fim = clock();
 	tempo_paralelo = ((double)(timer_fim - timer_inicio)) / CLOCKS_PER_SEC;
-	//printf("Total de numeros primos encontrados: %d\n", primos_cont);
 
 	printf("%s\nExecucao concluida com sucesso!%s\n\n", GREEN, RESET);
 
@@ -276,17 +269,11 @@ int main() {
 	printf("Speedup	                   %s%lfx %s\n", GREEN, speedup, RESET);
 	printf("%s-----------------------------------------%s\n", GRAY, RESET);
 
-	/*printf("Tempo serial: %lf segundos\n", tempo_serial);
-	printf("Tempo paralelo: %lf segundos\n", tempo_paralelo);
-	printf("Speedup: %lf\n", speedup);*/
-
 	printf("%s              Configuracoes%s\n", GREEN, RESET);
 	printf("%s-----------------------------------------%s\n", GRAY, RESET);
 	printf("Threads utilizadas         %d\n", NUM_THREADS);
 	printf("Macroblocos processados    %d\n", qnt_macrobloco);
 	printf("%s-----------------------------------------%s\n\n", GRAY, RESET);
-
-	//printf("\nQuantidade de macroblocos: %d\nQuantidade de threads: %d\n", qnt_macrobloco, NUM_THREADS);
 
 	liberar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA, matriz);
 }

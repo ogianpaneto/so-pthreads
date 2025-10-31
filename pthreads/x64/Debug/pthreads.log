@@ -1,4 +1,4 @@
 ﻿  Principal.c
-C:\Users\Gian Lucca\source\repos\pthreads\pthreads\Principal.c(68,11): warning C4244: 'inicializando': conversão de 'double' para 'int', possível perda de dados
-C:\Users\Gian Lucca\source\repos\pthreads\pthreads\Principal.c(201,1): warning C4715: 'thread_busca': nem todos os caminhos de controle retornam um valor
+C:\Users\Gian Lucca\source\repos\pthreads\pthreads\Principal.c(63,11): warning C4244: 'inicializando': conversão de 'double' para 'int', possível perda de dados
+C:\Users\Gian Lucca\source\repos\pthreads\pthreads\Principal.c(196,1): warning C4715: 'thread_busca': nem todos os caminhos de controle retornam um valor
   pthreads.vcxproj -> C:\Users\Gian Lucca\source\repos\pthreads\x64\Debug\pthreads.exe
