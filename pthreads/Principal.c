@@ -9,19 +9,29 @@
 #include <math.h>
 #include <time.h>
 
+// tamanho maximo dos numeros da matriz
 #define MAX_SIZE_MATRIZ 31999
 
+// tamanho dos macroblocos
 #define MACROBLOCO_ALTURA 10
 #define MACROBLOCO_LARGURA 10
 
+// seed para a geracao de numeros "aleatorios"
 #define SEED 8008135
 
+// dimensoes da matriz
 #define MATRIZ_ALTURA 13000
 #define MATRIZ_LARGURA 13000
 
+// numero de threads
 #define NUM_THREADS 4
 
+// otimizacao na funcao de verifica√ß√£o de numeros primos
+// 1 para ativar, 0 para desativar
+#define OTIMIZADO 1
 
+
+// variaveis globais
 int** matriz;
 int primos_cont = 0;
 
@@ -36,29 +46,36 @@ pthread_mutex_t mutex_erro_printf;
 int macrobloco_proximo = 1;
 
 
-int ehPrimo(int n) {
-	//if (n == 2 || n == 3) return 1;
-	//if (n < 2 || n % 2 == 0) return 0;
-	//if (n < 9) return 1;
-	//if (n % 3 == 0) return 0;
-	//int r = sqrt(n);
-	//for (int i = 5; i <= r; i += 6) {
-	//	if (n % i == 0) return 0;
-	//	if (n % (i + 2) == 0) return 0;
-	//}
-
-	for (int i = 2; i <= sqrt(n); i++) {
-		if (n % i == 0) return 0;
+// funcao para verificar se um numero e primo
+int eh_primo(int n, int variacao) {
+	// se OTIMIZADO = 1, usa a versao otimizada
+	if (OTIMIZADO) {
+		if (n == 2 || n == 3) return 1;
+		if (n < 2 || n % 2 == 0) return 0;
+		if (n < 9) return 1;
+		if (n % 3 == 0) return 0;
+		int r = sqrt(n);
+		for (int i = 5; i <= r; i += 6) {
+			if (n % i == 0) return 0;
+			if (n % (i + 2) == 0) return 0;
+		}
 	}
-
+	// versao nao otimizada
+	else {
+		for (int i = 2; i <= sqrt(n); i++) {
+			if (n % i == 0) return 0;
+		}
+	}
+	
+	// se chegou aqui, o numero e primo
 	return 1;
 }
 
-// funÁıes para alocar e liberar matrizes retiradas da apostila de programaÁ„o em c (pag. 113)
-int** Alocar_matriz_real(int m, int n)
+// funcoes para alocar e liberar matrizes retiradas da apostila de programacao em c (pag. 113)
+int** alocar_matriz_real(int m, int n)
 {
 	int** v; /* ponteiro para a matriz */
-	int i; /* vari·vel auxiliar */
+	int i; /* variÔøΩvel auxiliar */
 	if (m < 1 || n < 1) { /* verifica parametros recebidos */
 		printf("** Erro: Parametro invalido **\n");
 		return (NULL);
@@ -81,11 +98,11 @@ int** Alocar_matriz_real(int m, int n)
 
 	return (v); /* retorna o ponteiro para a matriz */
 }
-int** Liberar_matriz_real(int m, int n, int** v)
+int** liberar_matriz_real(int m, int n, int** v)
 {
-	int i; /* vari·vel auxiliar */
+	int i; /* variÔøΩvel auxiliar */
 	if (v == NULL) return (NULL);
-	if (m < 1 || n < 1) { /* verifica par‚metros recebidos */
+	if (m < 1 || n < 1) { /* verifica parÔøΩmetros recebidos */
 		printf("** Erro: Parametro invalido **\n");
 		return (v);
 	}
@@ -94,44 +111,54 @@ int** Liberar_matriz_real(int m, int n, int** v)
 	return (NULL); /* retorna um ponteiro nulo */
 }
 
+// funcao para preencher a matriz com numeros aleatorios
 void preencher_matriz(int** matriz, int altura, int largura) {
 	int i, j;
+	// inicializa a seed para a geracao de numeros aleatorios
 	srand(SEED);
+
 	for (i = 0; i < altura; i++) {
 		for (j = 0; j < largura; j++) matriz[i][j] = rand() % MAX_SIZE_MATRIZ;
 	}
 }
 
-void buscaSerial() {
+// funcao de busca serial
+void busca_serial() {
+	// reseta o contador de primos
 	primos_cont = 0;
+	
 	for (int i = 0; i < MATRIZ_ALTURA; i++) {
 		for (int j = 0; j < MATRIZ_LARGURA; j++) {
-			if (ehPrimo(matriz[i][j])) {
-				primos_cont++;
-			}
+			if (eh_primo(matriz[i][j])) primos_cont++;			
 		}
 	}
 }
 
+// a funcao rodada por cada thread
 void* thread_busca(void* diov) {
+	// identificador do macrobloco atual
 	int macrobloco_atual;
 	
 	while (1) {
 		
+		// verifica se ja processou todos os macroblocos
 		if (macrobloco_proximo > qnt_macrobloco) {
 			pthread_mutex_unlock(&mutex_macrobloco); 
 			break;
 		}
 
+		// pega o proximo macrobloco a ser processado (zona critica)
 		pthread_mutex_lock(&mutex_macrobloco);
 		macrobloco_atual = macrobloco_proximo++;
 		pthread_mutex_unlock(&mutex_macrobloco);
 
+		// calcula os limites do macrobloco atual
 		int linha_inicio = ((macrobloco_atual - 1) / colunas_macrobloco) * MACROBLOCO_ALTURA;
 		int linha_fim = linha_inicio + MACROBLOCO_ALTURA - 1;
 		int coluna_inicio = ((macrobloco_atual - 1) % colunas_macrobloco) * MACROBLOCO_LARGURA;
 		int coluna_fim = coluna_inicio + MACROBLOCO_LARGURA - 1;
 
+		// verifica se os limites estao dentro da matriz (caso contrario, erro de acesso a memoria)
 		if (linha_inicio < 0 || linha_inicio >= MATRIZ_ALTURA ||
 			linha_fim < 0 || linha_fim >= MATRIZ_ALTURA ||
 			coluna_inicio < 0 || coluna_inicio >= MATRIZ_LARGURA ||
@@ -139,13 +166,15 @@ void* thread_busca(void* diov) {
 		{
 			pthread_mutex_lock(&mutex_erro_printf);
 			printf("Error: violacao de acesso ao ler local (provavel que o a divisao da matriz por macroblocos nao seja exata)");
-			exit(EXIT_FAILURE);
 			pthread_mutex_unlock(&mutex_erro_printf);
+			exit(EXIT_FAILURE);
 		}
 
+		// percorre o macrobloco atual contando os numeros primos
 		for (int i = linha_inicio; i <= linha_fim; i++) {
 			for (int j = coluna_inicio; j <= coluna_fim; j++) {
-				if (ehPrimo(matriz[i][j])) {
+				if (eh_primo(matriz[i][j])) {
+					// atualiza o contador de primos (zona critica)
 					pthread_mutex_lock(&mutex_primos);
 					primos_cont++;
 					pthread_mutex_unlock(&mutex_primos);
@@ -157,39 +186,46 @@ void* thread_busca(void* diov) {
 	pthread_exit(NULL);
 }
 
-void buscaParalela() {
+// funcao de busca paralela
+void busca_paralela() {
+	// reseta o contador de primos
 	primos_cont = 0;
 	pthread_t threads[NUM_THREADS];
 
+	// calcula a quantidade de macroblocos
 	qnt_macrobloco = (int)(ceil((double)(MATRIZ_ALTURA * MATRIZ_LARGURA) / (MACROBLOCO_ALTURA * MACROBLOCO_LARGURA)));
+	// calcula a quantidade de linhas e colunas de macroblocos
 	linhas_macrobloco = (int)(ceil((double)MATRIZ_ALTURA / MACROBLOCO_ALTURA));
 	colunas_macrobloco = (int)(ceil((double)MATRIZ_LARGURA / MACROBLOCO_LARGURA));
 
+	// inicializa mutexes
 	pthread_mutex_init(&mutex_primos, NULL);
 	pthread_mutex_init(&mutex_macrobloco, NULL);
 	pthread_mutex_init(&mutex_erro_printf, NULL);
 
+	// cria as threads para rodarem a funcao thread_busca()
 	for (int i = 0; i < NUM_THREADS; i++) pthread_create(&threads[i], NULL, thread_busca, NULL);
-
 	for (int i = 0; i < NUM_THREADS; i++) pthread_join(threads[i], NULL);
 
+	// destroi mutexes
 	pthread_mutex_destroy(&mutex_primos);
 	pthread_mutex_destroy(&mutex_macrobloco);
+	pthread_mutex_destroy(&mutex_erro_printf);
 }
 
-
+// funcao principal
 int main() {
 	clock_t timer_inicio, timer_fim;
 	double tempo_serial, tempo_paralelo, speedup;
 
 	printf("Alocando e preenchendo matriz... ");
-	matriz = Alocar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA);
+	matriz = alocar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA);
 	preencher_matriz(matriz, MATRIZ_ALTURA, MATRIZ_LARGURA);
 	printf("ok!\n");
 
 	printf("\nIniciando busca serial... ");
 	timer_inicio = clock();
-	buscaSerial();
+	busca_serial();
 	printf("ok!\n");
 	timer_fim = clock();
 	tempo_serial = ((double)(timer_fim - timer_inicio)) / CLOCKS_PER_SEC;
@@ -197,7 +233,7 @@ int main() {
 
 	printf("\nIniciando busca paralela... ");
 	timer_inicio = clock();
-	buscaParalela();
+	busca_paralela();
 	printf("ok!\n");
 	timer_fim = clock();
 	tempo_paralelo = ((double)(timer_fim - timer_inicio)) / CLOCKS_PER_SEC;
@@ -211,5 +247,5 @@ int main() {
 
 	printf("\nQuantidade de macroblocos: %d\nQuantidade de threads: %d\n", qnt_macrobloco, NUM_THREADS);
 
-	Liberar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA, matriz);
+	liberar_matriz_real(MATRIZ_ALTURA, MATRIZ_LARGURA, matriz);
 }
