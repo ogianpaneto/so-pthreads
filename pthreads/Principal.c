@@ -28,7 +28,7 @@
 
 // otimizacao na funcao de verificação de numeros primos
 // 1 para ativar, 0 para desativar
-#define OTIMIZADO 1
+#define OTIMIZADO 0
 
 
 // variaveis globais
@@ -138,6 +138,7 @@ void busca_serial() {
 void* thread_busca(void* diov) {
 	// identificador do macrobloco atual
 	int macrobloco_atual;
+	int primos_cont_macrobloco;
 	
 	while (1) {
 		
@@ -171,16 +172,18 @@ void* thread_busca(void* diov) {
 		}
 
 		// percorre o macrobloco atual contando os numeros primos
+		primos_cont_macrobloco = 0;
 		for (int i = linha_inicio; i <= linha_fim; i++) {
 			for (int j = coluna_inicio; j <= coluna_fim; j++) {
 				if (eh_primo(matriz[i][j])) {
-					// atualiza o contador de primos (zona critica)
-					pthread_mutex_lock(&mutex_primos);
-					primos_cont++;
-					pthread_mutex_unlock(&mutex_primos);
+					// atualiza o contador de primos do macrobloco
+					primos_cont_macrobloco++;
 				}
 			}
 		}
+		pthread_mutex_lock(&mutex_primos);
+		primos_cont += primos_cont_macrobloco;
+		pthread_mutex_unlock(&mutex_primos);
 	}
 
 	pthread_exit(NULL);
