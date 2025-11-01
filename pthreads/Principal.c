@@ -45,9 +45,9 @@ int qnt_macrobloco;
 int linhas_macrobloco;
 int colunas_macrobloco;
 
-pthread_mutex_t mutex_primos;
-pthread_mutex_t mutex_macrobloco;
-pthread_mutex_t mutex_erro_printf;
+//pthread_mutex_t mutex_primos;
+//pthread_mutex_t mutex_macrobloco;
+//pthread_mutex_t mutex_erro_printf;
 
 int macrobloco_proximo = 1;
 
@@ -149,16 +149,16 @@ void* thread_busca(void* diov) {
 	while (1) {
 		
 		// verifica se ja processou todos os macroblocos
-		pthread_mutex_lock(&mutex_macrobloco);
+		//pthread_mutex_lock(&mutex_macrobloco);
 		if (macrobloco_proximo > qnt_macrobloco) {
-			pthread_mutex_unlock(&mutex_macrobloco); 
+			//pthread_mutex_unlock(&mutex_macrobloco); 
 			break;
 		}
 
 		// pega o proximo macrobloco a ser processado (zona critica)
 		macrobloco_atual = macrobloco_proximo;
 		macrobloco_proximo = macrobloco_proximo + 1;
-		pthread_mutex_unlock(&mutex_macrobloco);
+		//pthread_mutex_unlock(&mutex_macrobloco);
 
 		// calcula os limites do macrobloco atual
 		int linha_inicio = ((macrobloco_atual - 1) / colunas_macrobloco) * MACROBLOCO_ALTURA;
@@ -172,7 +172,7 @@ void* thread_busca(void* diov) {
 			coluna_inicio < 0 || coluna_inicio >= MATRIZ_LARGURA ||
 			coluna_fim < 0 || coluna_fim >= MATRIZ_LARGURA) 
 		{
-			pthread_mutex_lock(&mutex_erro_printf);
+			//pthread_mutex_lock(&mutex_erro_printf);
 			printf("Error: violacao de acesso ao ler local (provavel que o a divisao da matriz por macroblocos nao seja exata)\n\n");
 			exit(EXIT_FAILURE);
 		}
@@ -187,9 +187,9 @@ void* thread_busca(void* diov) {
 				}
 			}
 		}
-		pthread_mutex_lock(&mutex_primos);
+		//pthread_mutex_lock(&mutex_primos);
 		primos_cont += primos_cont_macrobloco;
-		pthread_mutex_unlock(&mutex_primos);
+		//pthread_mutex_unlock(&mutex_primos);
 	}
 
 	pthread_exit(NULL);
@@ -208,18 +208,18 @@ void busca_paralela() {
 	colunas_macrobloco = (int)(ceil((double)MATRIZ_LARGURA / MACROBLOCO_LARGURA));
 
 	// inicializa mutexes
-	pthread_mutex_init(&mutex_primos, NULL);
-	pthread_mutex_init(&mutex_macrobloco, NULL);
-	pthread_mutex_init(&mutex_erro_printf, NULL);
+	//pthread_mutex_init(&mutex_primos, NULL);
+	//pthread_mutex_init(&mutex_macrobloco, NULL);
+	//pthread_mutex_init(&mutex_erro_printf, NULL);
 
 	// cria as threads para rodarem a funcao thread_busca()
 	for (int i = 0; i < NUM_THREADS; i++) pthread_create(&threads[i], NULL, thread_busca, NULL);
 	for (int i = 0; i < NUM_THREADS; i++) pthread_join(threads[i], NULL);
 
 	// destroi mutexes
-	pthread_mutex_destroy(&mutex_primos);
-	pthread_mutex_destroy(&mutex_macrobloco);
-	pthread_mutex_destroy(&mutex_erro_printf);
+	//pthread_mutex_destroy(&mutex_primos);
+	//pthread_mutex_destroy(&mutex_macrobloco);
+	//pthread_mutex_destroy(&mutex_erro_printf);
 }
 
 // funcao principal
