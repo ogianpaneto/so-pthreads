@@ -19,18 +19,18 @@
 #define MAX_SIZE_MATRIZ 31999
 
 // tamanho dos macroblocos
-#define MACROBLOCO_ALTURA 10
-#define MACROBLOCO_LARGURA 10
+#define MACROBLOCO_ALTURA 100
+#define MACROBLOCO_LARGURA 100
 
 // seed para a geracao de numeros "aleatorios"
 #define SEED 8008135
 
 // dimensoes da matriz
-#define MATRIZ_ALTURA 5000
-#define MATRIZ_LARGURA 5000
+#define MATRIZ_ALTURA 10000
+#define MATRIZ_LARGURA 10000
 
 // numero de threads
-#define NUM_THREADS 8
+#define NUM_THREADS 200
 
 // otimizacao na funcao de verificação de numeros primos
 // 1 para ativar, 0 para desativar
